@@ -3,6 +3,9 @@ import * as yup from "yup";
 import { useForm } from 'react-hook-form';
 import { yupResolver } from "@hookform/resolvers/yup";
 import "../pages/Cadastro.css"
+import ShowPasswordToggle from "../components/ShowPasswordToggle";
+import api from "../services/api";
+import { ThemeContext } from "@emotion/react";
 
 const validationPost = yup.object().shape({
     nome: yup
@@ -36,7 +39,8 @@ export default function Cadastro(){
     const[senha, setSenha] = useState("");
     const[mostrarSenha, setMostrarSenha] = useState(false);
     const[mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
-    const[senhaConfirmada, setSenhaConfirmada] = useState(false);
+    
+    const [passwordInputType, confirmPasswordInputType, TogglePasswordVisibilityIcon, ToggleConfirmPasswordVisibilityIcon] = ShowPasswordToggle();
 
     const {
         register,
@@ -50,12 +54,27 @@ export default function Cadastro(){
     
     const hasErrors = Object.keys(errors).length > 0;
 
+    const onSubmit = async (data) =>{
+        const dataToSend = {
+            nomePessoa: data.nome,
+            login: data.login,
+            senha: data.senha,
+            role: "USER"
+        }
+        try{
+            const response = await  api.post("/login/register", dataToSend);
+        }
+        catch(error){
+            console.log("Erro ao cadastrar. " + error)
+        }
+    }
+
     return(<div>
         <div className="FormContainer">
             <div className="FormHeader">
                 <h1>Cadastro: </h1>
             </div>
-                <form  className="CadastroForm" onSubmit={handleSubmit}>
+                <form  className="CadastroForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="Campo">
                         <label htmlFor="nome" className="">Nome: </label>
                         <input type = "text" id = "nome" {...register("nome")}/>
@@ -70,13 +89,15 @@ export default function Cadastro(){
 
                     <div className="Campo">
                         <label htmlFor="senha" className="">Senha: </label>
-                        <input type={mostrarSenha ? "text" : "password"} id="senha" {...register("senha")}/>
+                        <input type={passwordInputType} id="senha" {...register("senha")}/>
+                        {TogglePasswordVisibilityIcon}
                         {errors.senha && <p>{errors.senha.message}</p>}
                     </div>
 
                     <div className="Campo">
                         <label htmlFor="confirmarSenha" className="">Confirmar senha: </label>
-                        <input type={mostrarConfirmarSenha ? "text" : "password"} id="confirmarSenha" {...register("confirmarSenha")}/>
+                        <input type={confirmPasswordInputType} id="confirmarSenha" {...register("confirmarSenha")}/>
+                        {ToggleConfirmPasswordVisibilityIcon}
                         {errors.confirmarSenha && <p>{errors.confirmarSenha.message}</p>}
                     </div>
 
